@@ -1,0 +1,76 @@
+{
+  "upstream_commit": "4a79926ef5e154403d1724c3796004b8b37e324d",
+  "checks": {
+    "health_status": 200,
+    "normal_plan": {
+      "status": "completed",
+      "rooms_placed": 1
+    },
+    "dxf_readback": {
+      "entities": 12,
+      "units": 6,
+      "audit_errors": 0
+    },
+    "download_status": 200,
+    "preview": {},
+    "constraints_ignored": {
+      "same_room_geometry": true,
+      "status": "completed",
+      "note": "Identical seed and room; impossible 100m aisle and fixed column added."
+    },
+    "impossible_room": {
+      "status": "completed",
+      "rooms_placed": 0
+    },
+    "ai_execution": {
+      "analysis_calls": 0,
+      "optimization_calls": 0,
+      "status": "completed",
+      "ai_enabled": true,
+      "ai_analysis_performed": false
+    },
+    "filename_escapes_plan_folder": true,
+    "delete_leaves_dxf": true,
+    "listing_metadata": [
+      {
+        "building_type": "residential",
+        "score": 85
+      },
+      {
+        "building_type": "residential",
+        "score": 85
+      },
+      {
+        "building_type": "residential",
+        "score": 85
+      },
+      {
+        "building_type": "residential",
+        "score": 85
+      }
+    ],
+    "text_helper_returns_none": true,
+    "drawing_bounds": {
+      "min_x": 0,
+      "min_y": 0,
+      "max_x": 0,
+      "max_y": 0
+    },
+    "invalid_dimensions_accepted": true,
+    "global_auth_defined": false,
+    "legacy_key_location": [
+      "query"
+    ]
+  },
+  "versions": {
+    "ezdxf": "1.4.4",
+    "fastapi": "0.143.0",
+    "openai": "3.26.1",
+    "sqlalchemy": "2.1.4",
+    "shapely": "2.2.0",
+    "pydantic": "2.13.5",
+    "numpy": "2.3.5",
+    "networkx": "3.7",
+    "httpx": "0.28.1"
+  }
+}
