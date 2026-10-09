@@ -37,4 +37,4 @@ __pycache__/
 *.pyo
 *.pyd
 .Python
-EOF
+EOF/examples/generated/
