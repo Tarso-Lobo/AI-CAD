@@ -65,3 +65,21 @@ ZeroGPU exige Gradio e usa fila e cota diária. A documentação consultada info
 Os layouts enviados ao Space saem da máquina local. Use apenas o exemplo sintético até definir consentimento, retenção e tratamento dos dados de lojas reais.
 
 Fontes oficiais: [ZeroGPU](https://huggingface.co/docs/hub/spaces-zerogpu), [Gradio Python Client](https://gradio.app/docs/python-client/client) e [ZeroGPU Spaces pelo cliente](https://gradio.app/docs/python-client/using-zero-gpu-spaces).
+
+
+### Situação da implantação Hugging Face (2026-10-09)
+
+- O diretório `spaces/retail-zerogpu/` contém uma aplicação Gradio configurada para ZeroGPU e o modelo `Qwen/Qwen2.5-1.5B-Instruct`; o adaptador do backend está implementado. Isso é preparação versionada, não uma implantação concluída.
+- Tentamos abrir a criação do Space e autenticar na conta Hugging Face. Após o envio seguro do formulário, o site respondeu `403 ERROR` do CloudFront (“The request could not be satisfied”). A autenticação não foi confirmada e não repetimos tentativas.
+- Portanto, nenhum Space foi criado ou configurado: ainda não há proprietário/ID, URL, visibilidade, segredo configurado ou build remoto. Nenhuma inferência ZeroGPU foi executada. O próximo passo de implantação depende de o Hugging Face voltar a permitir o acesso; depois disso, registrar aqui o ID e a visibilidade escolhida, configuração sem valores secretos, resultado do build e testes remotos.
+- Nenhuma senha, token ou dado real de loja foi adicionado ao repositório.
+
+## Registro obrigatório de alterações e testes
+
+Toda alteração nova nesta linha de trabalho, em qualquer branch, deve atualizar as especificações do projeto no mesmo conjunto de mudanças. Registre a data, o comportamento ou decisão alterada, os arquivos/partes afetados, o motivo e os casos de teste executados com seus resultados. Se um teste não se aplicar ou não puder ser executado, declare isso e o motivo. Diferencie testes locais, simulados e remotos; nunca descreva uma integração externa como testada quando só foi preparada. Atualize também a seção funcional pertinente (por exemplo, API, escopo ou implantação) para que a especificação continue refletindo o estado atual, e não apenas acrescente um histórico sem contexto.
+
+### Registro desta atualização (2026-10-09)
+
+- **Alteração:** documentado o protótipo ZeroGPU como preparado, o bloqueio de autenticação 403 e o estado ainda não implantado; estabelecida a regra de registrar mudanças e testes nas especificações independentemente da branch.
+- **Verificações:** inspeção do formulário e do estado visível do Hugging Face; tentativa de autenticação por fluxo seguro; resposta visível 403 CloudFront. A autenticação e a implantação não foram verificadas com sucesso.
+- **Testes de software:** a execução anterior desta branch registrou 23 testes passando, incluindo cliente Gradio simulado e validação local. Esses testes não incluem chamada remota nem uso de GPU. Nenhuma nova suíte foi executada nesta atualização, que altera documentação.
