@@ -127,3 +127,11 @@ Toda alteração nova nesta linha de trabalho, em qualquer branch, deve atualiza
 - **Limitações:** validação comercial/humana, AutoCAD, frontend e integração remota não executados. DEF-02/03/04, acessos físicos e percurso continuam pendentes em I1/I2.
 
 Verificação visual de I0: SVG renderizado com CairoSVG e inspecionado; corrigida altura explícita da imagem para preservar a proporção. CairoSVG/Black foram ferramentas de desenvolvimento locais, não dependências do CLI. `git diff --check` sem erros.
+
+### Revisão de requisitos após I0 (2026-10-09)
+
+A orientação de I1 está refinada em [RETAIL_HANDOFF.md](RETAIL_HANDOFF.md), v0.3, seção “Revisão de requisitos após I0”. A revisão inspecionou o commit `f0ed33c`; não reexecutou os testes nem realizou nova inspeção visual. Os 30 testes/6 avisos permanecem evidência reportada pelo desenvolvimento.
+
+I1 será dividido em I1a (políticas independentes de presença, mobilidade e substituição; comparação de inventário) e I1b (acessos físicos e circulação). Políticas da entrada não podem ser relaxadas pela proposta do provedor. Aberturas são segmentos no limite, distintos de corredores. A circulação considera largura utilizável e caminhos alternativos; conexões aos pares não autorizam alegação geral de passagem em curvas. Compatibilidade legada deve explicitar aprovação parcial. RF-LAY-08 permanece em I2.
+
+Estas convenções são propostas para cenários sintéticos; não confirmam dados de lojas reais. Atualização exclusivamente documental, sem código ou novos testes funcionais; verificação por leitura e revisão de consistência com os IDs existentes.
