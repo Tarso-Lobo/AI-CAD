@@ -87,3 +87,9 @@ curl -X POST http://localhost:8000/generate \
 
 ---
 Developed by [Ishan Parihar](https://github.com/ishan-parihar) — If you find this useful, [consider supporting](https://rzp.io/rzp/ishan-parihar)
+
+## Experimento de layout para varejo
+
+O primeiro incremento do fork está em [docs/RETAIL_FOUNDATION.md](docs/RETAIL_FOUNDATION.md). Ele inclui um exemplo 12 × 10 m, validação geométrica, geração SVG/DXF, testes e configuração de tarefas do VS Code. A opção Hugging Face ZeroGPU requer publicar/configurar um Space em sua conta; a inferência remota ainda não foi executada.
+
+Para abrir e rodar o protótipo no VS Code, siga [docs/VS_CODE.md](docs/VS_CODE.md).

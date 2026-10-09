@@ -1,0 +1,5 @@
+torch
+transformers>=4.45,<5
+accelerate>=1.0
+spaces>=0.30
+gradio==5.49.1
