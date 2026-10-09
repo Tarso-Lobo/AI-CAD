@@ -1,6 +1,6 @@
 # Repasse para desenvolvimento e gestão — layout e planograma
 
-Versão: 0.2 — 09/10/2026.
+Versão: 0.3 — 09/10/2026.
 Estado: I0 implementado e testado localmente; I1/I2 propostos. Não é aprovação comercial.
 Referência principal: [RETAIL_FOUNDATION.md](RETAIL_FOUNDATION.md).
 Baseline auditada: branch `feat/retail-foundation`, commit `6eb691f061a106263ac05d1577109e73977d67a3`, PR nº 1 aberta em rascunho.
@@ -199,3 +199,54 @@ Testes funcionais novos: não executados, por se tratar apenas de documentação
 - **Próxima ação:** I1, explicitar regras sintéticas de alteração do inventário e convenção de acessos/conexões antes de ampliar os validadores; registrar propostas em `mudancas.md` se revelarem conflito de intenção. Não há bloqueio de GPU para esse trabalho.
 
 Verificação visual de I0: SVG renderizado com CairoSVG e inspecionado; corrigida altura explícita da imagem para preservar a proporção. CairoSVG/Black foram ferramentas de desenvolvimento locais, não dependências do CLI. `git diff --check` sem erros.
+
+## Revisão de requisitos após I0 — orientação para I1, 09/10/2026
+
+### Evidência e estado
+Inspecionados remotamente o commit `f0ed33cd38ef1f9a366d268200f18eb7cccedd6d` (código, testes e documentação) e este handoff v0.2. RF-LAY-01/RQ-LAY-01 permanecem implementados com evidência local registrada pelo desenvolvimento; RQ-LAY-02 parcial. Nesta revisão não se reexecutou a suíte nem se inspecionou a imagem renderizada. Os 30 testes/6 avisos são resultado reportado pelo desenvolvimento. A revisão não constitui validação comercial do consultor.
+
+### Refinamento de RD-LAY-01 e RF-LAY-05/06/07
+Obrigatoriedade, mobilidade e substituição são propriedades independentes. As quatro classes anteriores são perfis de política; não precisam virar um enum exclusivo que impeça combinações.
+
+| Perfil | Presença e identidade | Alterações permitidas |
+| --- | --- | --- |
+| Fixo | Preservar ID e presença | Preservar posição, dimensões, altura e categoria/função |
+| Obrigatório reposicionável | Preservar ID e presença | Alterar somente posição neste I1; demais atributos protegidos |
+| Substituível mediante decisão | Preservar até existir decisão explícita | Substituição deve identificar item original, substituto, decisão e atributos autorizados |
+| Condição desconhecida | Preservar ID e presença | Não alterar atributos protegidos; informar pendência de classificação |
+
+Estas regras são proposta técnica para o caso sintético, não confirmação de condições de loja real. Política e decisões vêm da entrada confiável; a resposta do provedor não pode relaxá-las. IDs são estáveis: renomear um item para contornar a proteção conta como remoção/inclusão. A comparação deve incluir posição, dimensões, altura, categoria/função, inclusões e remoções; a versão original deve permanecer intacta mesmo em rejeição.
+
+Não construir um fluxo de aprovação multiusuário em I1. Uma decisão explícita no cenário de teste basta para exercitar substituição. Sem decisão, bloquear a substituição. Campos ausentes de política significam condição desconhecida, nunca permissão irrestrita.
+
+Para a fixture principal de 12 × 10 m, propor hortifruti, básicos, bazar e caixa como obrigatórios reposicionáveis, preservando suas medidas e funções. Isso é hipótese explícita de teste. Usar fixture separada para elemento fixo e outra para substituição; não inventar um pilar medido no exemplo principal.
+
+### Refinamento de RF-LAY-02/03 — acessos
+Representar abertura como segmento em uma face do limite retangular: ID, função, face, posição ao longo da face e largura livre em metros. Documentar origem inferior esquerda e convenção de posição. Corredores continuam entidades distintas.
+
+No cenário sintético, manter entrada à direita e saída à esquerda conforme intenção existente; documentar se isso significa posição na fachada ou faces do prédio antes de atribuir coordenadas. Coordenadas novas são hipóteses de teste, não medições. Cada segmento deve ficar inteiro no limite e conectar-se à área livre interna por largura suficiente; ponto de contato não basta. Entrada/saída coincidentes ou sobrepostas são rejeitadas neste cenário; separação mínima adicional não foi especificada.
+
+Dados legados com zonas de entrada/saída podem continuar recebendo validação geométrica parcial. Não inferir automaticamente portas a partir dessas zonas e não anunciar RF-LAY-02 atendido para uma entrada sem acessos físicos.
+
+### Refinamento de RF-LAY-04 — circulação
+Usar 1,5 m apenas como largura declarada da fixture atual. A largura deve vir da configuração confiável e ser preservada pelo provedor. A rede utilizável deve conectar entrada e saída, incluindo as zonas declaradas obrigatórias, por ligações com largura suficiente.
+
+Não confundir área da interseção de dois retângulos com largura utilizável do caminho. Contato por ponto não conecta; dois retângulos encostados por uma borda livre suficientemente larga podem conectar. Uma ligação estreita não conecta, mas não deve invalidar toda a alternativa se existir outro caminho suficiente entre as zonas exigidas.
+
+O algoritmo escolhido deve documentar que formas/cantos verifica e suas limitações. Se adotar aproximação conservadora, declarar isso; não afirmar garantia geral de passagem em curvas só por verificar conexões aos pares. A conectividade de circulação não comprova a jornada comercial de RF-LAY-08, que permanece em I2. Tolerância numérica deve ser explícita, pequena e não transformar uma largura materialmente insuficiente em suficiente.
+
+### Critérios e ordem de implementação
+Dividir I1 em duas entregas revisáveis:
+1. I1a: RD-LAY-01 e RF-LAY-05/06/07 — comparação com entrada, políticas e relatório de diferenças.
+2. I1b: RF-LAY-02/03/04 — acessos físicos e conexões utilizáveis.
+
+Casos obrigatórios de I1a: remoção de obrigatório rejeitada; deslocamento/redimensionamento de fixo rejeitados; reposicionamento permitido aceito se geométrico; mudança de altura/função não autorizada rejeitada; desconhecido preservado e sinalizado; substituição sem decisão rejeitada e com decisão válida aceita; tentativa de relaxar política ou renomear obrigatório rejeitada.
+
+Casos obrigatórios de I1b: acesso fora do limite/coincidente rejeitado; acesso válido conectado aceito; ponto e ligação única de 1 cm rejeitados; borda compartilhada suficiente aceita; largura abaixo/exatamente/acima do mínimo testada; caminho alternativo suficiente aceito; rede realmente desconectada rejeitada. Manter a demonstração I0 funcionando.
+
+Aplicar proteção no caminho real de aceitação da proposta simulada/remota e atualizar escopo dos relatórios/exportações. Não registrar fidelidade como verificada quando só há uma planta isolada sem baseline para comparação. Preservar testes de I0 e diferenciar entradas legadas com aprovação parcial.
+
+### Retorno esperado
+Registrar IDs, arquivos, casos executados/resultados, limitações do algoritmo, decisões sintéticas, compatibilidade, branch/commit e PR. Manter PR em rascunho. Nenhuma inferência/GPU remota é necessária.
+
+Mudança desta revisão: refinamento documental de políticas, acessos e aceitação; sem alteração de código. Estado destas regras: proposto para implementação sintética, pendente de validação do proponente/consultor para uso real. Verificação: leitura do commit/handoff e revisão de consistência; testes funcionais novos não executados.
