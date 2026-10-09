@@ -4,6 +4,8 @@ Este incremento corrige falhas da geração original e acrescenta um caminho exp
 
 ## Executar o exemplo
 
+**Pendência confirmada na auditoria de 09/10/2026:** o comando de demonstração abaixo e a tarefa equivalente do VS Code referenciam `src.retail.demo`, módulo ausente na baseline `6eb691f`. O SVG disponível é uma prévia estática versionada; não há CLI reproduzível para regenerá-lo nessa baseline. Preservamos o comando como intenção histórica, mas ele não deve ser anunciado como funcional até a conclusão do incremento I0 de [RETAIL_HANDOFF.md](RETAIL_HANDOFF.md). A validação e a exportação DXF pela API funcionaram localmente.
+
 Na raiz, com Python 3.12 e as dependências de `audit/requirements-audit.txt` instaladas:
 
 ```bash
@@ -24,6 +26,8 @@ Inicialização: `cd backend && uvicorn src.main:app --host 127.0.0.1 --port 800
 
 Validações: medidas finitas e positivas, IDs únicos, referências de entrada/saída distintas, limites do prédio, sobreposição de equipamentos, invasão das áreas livres, largura dos retângulos de circulação declarados, conexão dessa rede e altura máxima de equipamentos na área de visibilidade da entrada.
 
+**Limites reproduzidos em 09/10/2026:** IDs distintos não impedem entrada e saída coincidentes; sobreposição mínima entre zonas pode ser aceita mesmo quando não comporta a largura declarada. Não há entidade de abertura física no limite do prédio. O adaptador de propostas verifica dimensões externas e geometria da resposta, mas não protege inventário obrigatório ou geometria de elementos fixos por comparação com a entrada. Portanto, `valid: true` significa somente aprovação pelas verificações limitadas existentes. Não comprova fidelidade de inventário, percurso ou adequação comercial.
+
 Isso não certifica acessibilidade, evacuação ou normas. A rede de circulação declarada não substitui simulação de percurso, fila de caixa ou área de operação de cada equipamento. Não há análise estrutural, mezaninos, rotação, pisos irregulares ou cálculo de iluminação. A intenção de iluminação fica explícita no JSON; não foi executado cálculo luminotécnico.
 
 ## Correções do fluxo original
@@ -40,6 +44,8 @@ Isso não certifica acessibilidade, evacuação ou normas. A rede de circulaçã
 23 testes passaram em ambiente isolado. Incluem leitura do DXF gerado, auditoria estrutural do arquivo, rejeição de conflitos, exportação HTTP e chamadas de IA com provedor simulado. O antigo `test_api.py` era um roteiro manual que dependia de um servidor já aberto; foi movido para `scripts/check_live_api.py` para não ser coletado pelo pytest. Nenhuma chave real, inferência externa ou GPU foi usada. A auditoria anterior em `audit/` continua sendo evidência do commit upstream, não um relatório de regressão desta branch.
 
 ## Próximos incrementos
+
+A ordem operacional desta lista histórica foi refinada no [repasse ao desenvolvimento](RETAIL_HANDOFF.md): I0, demonstração local reproduzível; I1, proteção de inventário/acessos e conexões de circulação; I2, percurso visual revisável. Proporções comerciais e integração remota não bloqueiam esses incrementos.
 
 1. Adaptar o esquema à impressão digital e às proporções de seções validadas pelo consultor, indicando a unidade de cada proporção (área, frente linear ou exposição).
 2. Implementar posicionamento de equipamentos e teste de rotas, incluindo entrada que convida ao interior, caixas e reposição.
@@ -65,6 +71,8 @@ ZeroGPU exige Gradio e usa fila e cota diária. A documentação consultada info
 Os layouts enviados ao Space saem da máquina local. Use apenas o exemplo sintético até definir consentimento, retenção e tratamento dos dados de lojas reais.
 
 Fontes oficiais: [ZeroGPU](https://huggingface.co/docs/hub/spaces-zerogpu), [Gradio Python Client](https://gradio.app/docs/python-client/client) e [ZeroGPU Spaces pelo cliente](https://gradio.app/docs/python-client/using-zero-gpu-spaces).
+
+As cotas citadas acima são registro da consulta anterior, não foram reconfirmadas neste repasse e precisam ser verificadas quando houver teste remoto. O próximo desenvolvimento é local; ZeroGPU permanece opcional.
 
 
 ### Situação da implantação Hugging Face (2026-10-09)
@@ -92,3 +100,12 @@ Toda alteração nova nesta linha de trabalho, em qualquer branch, deve atualiza
 - **Jobs:** a chamada de consulta de Jobs foi tentada, mas o servidor retornou `UNAVAILABLE` (“hf_jobs was not returned by tools/list”). Nenhum Job foi criado. O comando local `hf` também não está instalado neste ambiente; o OAuth do conector não foi copiado para o CLI.
 - **Testes desta verificação:** identidade autenticada confirmada; leitura de metadados públicos do modelo confirmada; consulta de Jobs indisponível; criação/edição de Space não pôde ser testada porque não existe ferramenta de escrita exposta. O erro 403 observado no navegador continua distinto do login do conector.
 - **Conclusão operacional:** o plugin melhorou o acesso de leitura à conta e aos metadados, mas não concede “liberdade” de administração do Space. Para criar/configurar, é necessário um canal de escrita autorizado (por exemplo, habilitar permissões de escrita na integração ou usar uma sessão autenticada/CLI com token de escrita mantido fora do repositório). Não registrar nem compartilhar esse token em arquivos ou mensagens.
+
+
+### Repasse de requisitos ao desenvolvimento (2026-10-09)
+
+- **Mudança e motivo:** criação de `docs/RETAIL_HANDOFF.md`, com escopo, baseline auditada, defeitos reproduzidos, IDs de requisitos, critérios de aceitação, incrementos e contrato de retorno entre chats; alinhamento desta referência com limitações reais do comando local, circulação e preservação de inventário.
+- **Arquivos afetados:** `docs/RETAIL_FOUNDATION.md` e `docs/RETAIL_HANDOFF.md`. Nenhuma alteração funcional.
+- **Verificação:** revisão de consistência documental e `git diff --check`.
+- **Evidência anterior desta sessão:** 23 testes passaram, com 6 avisos; API local de validação/exportação funcionou; DXF em metros com 9 polilinhas e zero erros de auditoria. Casos exploratórios aceitaram acessos coincidentes, conexão de 1 cm e remoção de equipamentos por provedor simulado; o CLI documentado falhou por módulo ausente.
+- **Não executados nesta atualização:** nova suíte funcional, build frontend, AutoCAD, implantação/inferência ou GPU remota; mudança exclusivamente documental. Os requisitos novos continuam propostos, não implementados nem validados com o consultor.
