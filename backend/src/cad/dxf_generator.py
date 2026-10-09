@@ -463,7 +463,7 @@ class DXFGenerator:
                     'rotation': rotation
                 }
             )
-            text_entity.set_pos(pos)
+            text_entity.set_placement(pos)
             
             self.logger.info(f"Added text: '{text}' at {pos}")
             return text_entity
@@ -545,6 +545,8 @@ class DXFGenerator:
             if not filename.lower().endswith('.dxf'):
                 filename += '.dxf'
             
+            if os.path.basename(filename) != filename or "\\" in filename:
+                raise ValueError("Filename must not contain path separators")
             filepath = os.path.join(output_dir, filename)
             
             self.drawing.saveas(filepath)
@@ -571,7 +573,9 @@ class DXFGenerator:
         
         # Get drawing bounds
         try:
-            bounds = msp.bounds
+            from ezdxf import bbox
+            extents = bbox.extents(msp)
+            bounds = (extents.extmin, extents.extmax) if extents.has_data else None
             drawing_bounds = {
                 "min_x": bounds[0][0] if bounds else 0,
                 "min_y": bounds[0][1] if bounds else 0,
