@@ -3,9 +3,10 @@
 from fastapi import FastAPI, HTTPException, BackgroundTasks, WebSocket, WebSocketDisconnect, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, field_validator
 from typing import Dict, List, Optional, Any
 from sqlalchemy.orm import Session
+import math
 import uuid
 import os
 import asyncio
@@ -30,6 +31,9 @@ app = FastAPI(
     description="AI-assisted architectural floor plan generation system",
     version="0.1.0"
 )
+
+from src.retail.routes import router as retail_router
+app.include_router(retail_router)
 
 # CORS middleware for frontend integration
 app.add_middleware(
@@ -56,9 +60,25 @@ class RoomRequirement(BaseModel):
 class FloorPlanRequest(BaseModel):
     name: str
     dimensions: Dict[str, float]  # {"width": 10.0, "height": 8.0}
-    rooms: List[RoomRequirement]
+    rooms: List[RoomRequirement] = Field(min_length=1)
     constraints: Optional[Dict[str, Any]] = {}
     building_type: str = "residential"
+
+    @field_validator("name")
+    @classmethod
+    def safe_name(cls, value: str) -> str:
+        if not value.strip() or len(value) > 120 or any(c in value for c in '/\\:*?"<>|') or any(ord(c) < 32 for c in value):
+            raise ValueError("Name must be a nonempty filename without path separators")
+        if value in (".", ".."):
+            raise ValueError("Invalid name")
+        return value
+
+    @field_validator("dimensions")
+    @classmethod
+    def positive_dimensions(cls, value: Dict[str, float]) -> Dict[str, float]:
+        if any(k not in value or not math.isfinite(value[k]) or value[k] <= 0 for k in ("width", "height")):
+            raise ValueError("Width and height must be finite and positive")
+        return value
 
 
 class PlanResponse(BaseModel):
@@ -574,7 +594,7 @@ async def generate_plan_background(plan_id: str, request: FloorPlanRequest):
                 
                 requirements_text = f"""
                 Building Type: {request.building_type}
-                Dimensions: {request.dimensions.width}m x {request.dimensions.height}m
+                Dimensions: {request.dimensions['width']}m x {request.dimensions['height']}m
                 Rooms: {', '.join([f'{room.type} ({room.area}m²)' for room in request.rooms])}
                 Constraints: {request.constraints}
                 """
@@ -703,31 +723,17 @@ async def generate_plan_background(plan_id: str, request: FloorPlanRequest):
                             "efficiency_score": spatial_result.data.get("efficiency_score", 0)
                         }
                         
-                        ai_optimizations = await ai_client.suggest_optimizations(layout_data)
+                        ai_optimizations = await ai_client.suggest_optimizations(layout_data, issues=[])
                         plan_dict["ai_optimizations"] = ai_optimizations
                         
                         # Broadcast AI optimizations
                         await websocket_manager.broadcast_ai_update(plan_id, {
                             "optimizations_completed": True,
-                            "suggestions": isinstance(ai_optimizations, dict) and ai_optimizations.get("optimizations", []) or [],
+                            "suggestions": ai_optimizations if isinstance(ai_optimizations, list) else [],
                             "confidence_score": isinstance(ai_optimizations, dict) and ai_optimizations.get("confidence_score", 0) or 0
                         })
                         
-                        # Apply high-confidence AI optimizations
-                        if isinstance(ai_optimizations, dict) and ai_optimizations.get("optimizations"):
-                            applied_optimizations = []
-                            for optimization in ai_optimizations["optimizations"]:
-                                if optimization.get("confidence", 0) > 0.8:
-                                    # Apply optimization logic here
-                                    logger.info(f"Applied AI optimization: {optimization.get('description')}")
-                                    applied_optimizations.append(optimization.get('description'))
-                            
-                            if applied_optimizations:
-                                await websocket_manager.broadcast_ai_update(plan_id, {
-                                    "optimizations_applied": True,
-                                    "applied_count": len(applied_optimizations),
-                                    "applied_optimizations": applied_optimizations
-                                })
+                        # Suggestions are advisory; no geometry has been changed.
                     
                     except Exception as e:
                         logger.warning(f"AI optimization failed: {e}")
@@ -773,6 +779,9 @@ async def generate_plan_background(plan_id: str, request: FloorPlanRequest):
             # Simple validation (would need full layout data for comprehensive validation)
             pass
         
+        if len(room_layouts) != len(request.rooms):
+            raise ValueError("Incomplete layout: not all requested rooms could be placed")
+
         # Save DXF file
         # Update progress in database
         plan_service.update_plan_progress(plan_id, 85, "Generating DXF file...")
@@ -805,14 +814,14 @@ async def generate_plan_background(plan_id: str, request: FloorPlanRequest):
                 "file_path": file_path,
                 "drawing_info": drawing_info,
                 "rooms_placed": len(room_layouts),
-                "ai_enabled": ai_client is not None,
+                "ai_enabled": ai_analysis is not None,
                 "ai_analysis_performed": ai_analysis is not None,
-                "ai_optimizations_applied": ai_optimizations is not None,
+                "ai_optimizations_applied": False,
                 "summary": {
                     "total_rooms": len(room_layouts),
                     "building_area": width * height,
                     "file_size": file_size,
-                    "ai_enhanced": ai_client is not None,
+                    "ai_enhanced": ai_analysis is not None,
                     "efficiency_score": min(95, (spatial_result.data.get("total_utilization", 85) if spatial_result else 85 + (5 if ai_optimizations else 0)))
                 },
                 "ai_analysis": ai_analysis,
