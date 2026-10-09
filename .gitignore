@@ -38,3 +38,8 @@ __pycache__/
 *.pyd
 .Python
 EOF/examples/generated/
+
+# Local I0 demo outputs and virtual environment
+/examples/generated/
+/examples/generated-qa/
+/.venv/

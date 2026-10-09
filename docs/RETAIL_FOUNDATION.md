@@ -4,14 +4,21 @@ Este incremento corrige falhas da geração original e acrescenta um caminho exp
 
 ## Executar o exemplo
 
-**Pendência confirmada na auditoria de 09/10/2026:** o comando de demonstração abaixo e a tarefa equivalente do VS Code referenciam `src.retail.demo`, módulo ausente na baseline `6eb691f`. O SVG disponível é uma prévia estática versionada; não há CLI reproduzível para regenerá-lo nessa baseline. Preservamos o comando como intenção histórica, mas ele não deve ser anunciado como funcional até a conclusão do incremento I0 de [RETAIL_HANDOFF.md](RETAIL_HANDOFF.md). A validação e a exportação DXF pela API funcionaram localmente.
-
-Na raiz, com Python 3.12 e as dependências de `audit/requirements-audit.txt` instaladas:
+O incremento I0 implementa `src.retail.demo`. Na raiz, crie um ambiente com Python 3.12 e instale o perfil de dependências existente:
 
 ```bash
+python -m venv .venv
+# Linux/macOS:
+source .venv/bin/activate
+# Windows PowerShell: .venv\Scripts\Activate.ps1
+python -m pip install -r audit/requirements-audit.txt
 PYTHONPATH=backend python -m src.retail.demo examples/retail-demo.json examples/generated
 PYTHONPATH=backend python -m pytest backend/tests -q
 ```
+
+No Windows, use a tarefa **Varejo: validar e exportar exemplo** do VS Code após ativar o ambiente; ela configura `PYTHONPATH`. O diretório de saída deve ser novo ou vazio. Para repetir, escolha outro diretório ou remova somente as saídas anteriores que não deseja preservar. O comando falha com código 1 para arquivo ausente, JSON/esquema inválido ou conflito geométrico; não exporta nesses casos e não sobrescreve saídas existentes.
+
+Saídas: `retail-layout.dxf`, `retail-layout.svg` e `validation.json`. O relatório lista verificações executadas e pendências, com escopo `declared_geometry_only`. A origem dos dados de entrada não é verificada pelo comando; intenções comerciais e de iluminação permanecem declaradas. Nenhuma credencial, servidor ou cliente remoto é necessário. O perfil de auditoria instala dependências adicionais para executar a suíte do backend, mas não é um lock completo de produção.
 
 Os arquivos DXF e SVG são gerados a partir das mesmas coordenadas, em metros. A origem é o canto inferior esquerdo. Neste primeiro esquema os equipamentos são retângulos alinhados aos eixos. Alturas são atributos e aparecem nas legendas. O contorno representa o limite da área, não paredes detalhadas com vãos.
 
@@ -109,3 +116,14 @@ Toda alteração nova nesta linha de trabalho, em qualquer branch, deve atualiza
 - **Verificação:** revisão de consistência documental e `git diff --check`.
 - **Evidência anterior desta sessão:** 23 testes passaram, com 6 avisos; API local de validação/exportação funcionou; DXF em metros com 9 polilinhas e zero erros de auditoria. Casos exploratórios aceitaram acessos coincidentes, conexão de 1 cm e remoção de equipamentos por provedor simulado; o CLI documentado falhou por módulo ausente.
 - **Não executados nesta atualização:** nova suíte funcional, build frontend, AutoCAD, implantação/inferência ou GPU remota; mudança exclusivamente documental. Os requisitos novos continuam propostos, não implementados nem validados com o consultor.
+
+
+### I0 — demonstração local reproduzível (2026-10-09)
+
+- **Requisitos:** RF-LAY-01 e RQ-LAY-01 implementados; RQ-LAY-02 parcialmente atendido pelo relatório e pela legenda SVG. DEF-01 corrigido.
+- **Arquivos:** `backend/src/retail/demo.py`, `backend/src/retail/preview.py`, `backend/tests/test_retail_demo.py`, tarefa VS Code e documentação/handoff.
+- **Decisão:** reutilizar o esquema e exportador DXF existentes; SVG usa retângulos métricos e transformação vertical explícita para origem inferior esquerda. Saídas existentes são preservadas. Não se amplia o alcance do validador neste incremento.
+- **Verificação:** ambiente virtual novo com Python 3.12.14 e `audit/requirements-audit.txt`; comando documentado gerou as três saídas. Suíte completa: 30 passaram, 6 avisos de depreciação existentes. Os sete novos casos cobrem correspondência métrica DXF/SVG, auditoria DXF, relatório, entrada inválida/ausente, preservação de saídas e escape XML.
+- **Limitações:** validação comercial/humana, AutoCAD, frontend e integração remota não executados. DEF-02/03/04, acessos físicos e percurso continuam pendentes em I1/I2.
+
+Verificação visual de I0: SVG renderizado com CairoSVG e inspecionado; corrigida altura explícita da imagem para preservar a proporção. CairoSVG/Black foram ferramentas de desenvolvimento locais, não dependências do CLI. `git diff --check` sem erros.

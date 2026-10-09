@@ -1,7 +1,7 @@
 # Repasse para desenvolvimento e gestão — layout e planograma
 
-Versão: 0.1 — 09/10/2026.
-Estado: requisitos e plano de implementação propostos a partir da auditoria; não é aprovação comercial nem declaração de funcionalidades implementadas.
+Versão: 0.2 — 09/10/2026.
+Estado: I0 implementado e testado localmente; I1/I2 propostos. Não é aprovação comercial.
 Referência principal: [RETAIL_FOUNDATION.md](RETAIL_FOUNDATION.md).
 Baseline auditada: branch `feat/retail-foundation`, commit `6eb691f061a106263ac05d1577109e73977d67a3`, PR nº 1 aberta em rascunho.
 Antes de implementar, conferir HEAD, alterações locais e estado da PR. A baseline é evidência histórica, não pressuposição de que a branch ficará congelada.
@@ -38,7 +38,7 @@ Para medidas e regras, distinguir informado, medido, inferido, hipótese e desco
 | validate_layout | Verifica limites, colisões, invasão de zonas livres, largura dos retângulos, conexão declarada e altura na zona de visibilidade |
 | POST /api/v1/retail/validate | Funcionou localmente com TestClient; escopo declarado: declared_geometry_only |
 | POST /api/v1/retail/export.dxf | Funcionou localmente; DXF em metros, 9 polilinhas e zero erros na auditoria ezdxf |
-| Prévia SVG | Arquivo estático versionado, inspecionado visualmente; acessos identificados, sem percurso completo |
+| Prévia SVG | I0: gerada por CLI a partir do mesmo RetailLayout do DXF; sem percurso completo |
 | POST /api/v1/retail/generate | Adaptador preparado; respostas simuladas testadas; sem inferência remota comprovada |
 | Frontend | Não foi encontrada integração com endpoints de varejo; build não executado nesta auditoria |
 | Planograma, versões e comparação | Não implementados no caminho de varejo inspecionado |
@@ -63,7 +63,7 @@ DEF-04 demonstra ausência de proteção; não significa que todos os equipament
 
 ## 5. Requisitos da próxima etapa
 
-IDs estáveis. Estado inicial de todos: **proposto, não implementado neste repasse**.
+IDs estáveis. Estado da v0.2: RF-LAY-01 e RQ-LAY-01 implementados e testados localmente; RQ-LAY-02 parcialmente implementado. Demais requisitos propostos e pendentes.
 P0 = demonstração reproduzível; P1 = fidelidade e circulação; P2 = percepção do percurso.
 
 | ID / tipo | Obrigação | Prioridade / origem | Critério verificável |
@@ -161,7 +161,7 @@ Em 09/10/2026, na baseline auditada:
 - Build frontend, AutoCAD e GPU/inferência remota: não executados; fora da verificação local realizada.
 - Parte dos testes CAD legados apenas executa/imprime operações; ampliar assertions ao modificar comportamento relevante.
 
-Esta atualização altera apenas documentação: não houve nova execução da suíte, nem alteração funcional. Os resultados acima são da auditoria precedente, não de funcionalidades propostas.
+Os resultados acima são da auditoria precedente. A implementação e os novos testes de I0 estão registrados abaixo; não comprovam I1/I2.
 
 ## 10. Contrato de retorno ao chat de requisitos
 
@@ -186,3 +186,16 @@ Motivo: converter a auditoria em requisitos verificáveis e ordem de desenvolvim
 Arquivos: docs/RETAIL_HANDOFF.md e docs/RETAIL_FOUNDATION.md.
 Verificação desta mudança: revisão de consistência de IDs, prioridades, critérios, fontes e estado; git diff --check.
 Testes funcionais novos: não executados, por se tratar apenas de documentação.
+
+
+## Retorno do desenvolvimento — I0, 09/10/2026
+
+- **Base efetivamente inspecionada:** `feat/retail-foundation`, HEAD `c00caff9d78c1510fa3c8f115d95fd82fbbf5f23`, árvore local limpa antes das alterações. PR nº 1 aberta em rascunho. Este conjunto de alterações tem mensagem de commit `feat(retail): implement I0 local demo (RF-LAY-01, RQ-LAY-01)`; seu SHA pode ser obtido no histórico, evitando referência circular no próprio commit.
+- **Estado:** RF-LAY-01/RQ-LAY-01 implementados e testados; RQ-LAY-02 parcial; RF-LAY-02…08/RD-LAY-01 pendentes. DEF-01 corrigido; DEF-02/03/04 não alterados.
+- **Rastreabilidade:** RF-LAY-01 → `backend/src/retail/demo.py` → `test_cli_exports_metric_equivalent_geometry`, `test_cli_failure_produces_no_exports`, `test_cli_preserves_existing_outputs`; RQ-LAY-01 → `backend/src/retail/preview.py` e exportador existente → teste de equivalência métrica; RQ-LAY-02 → `validation.json` produzido pelo CLI e legenda SVG → assertions de escopo/pendências no teste CLI.
+- **Decisões:** preservar coordenadas métricas no SVG usando transformação vertical explícita; diretório novo/vazio evita sobrescrita e confusão com saídas anteriores; dados não são classificados automaticamente como medidos/sintéticos; relatório indica procedência não verificada e intenções declaradas.
+- **Comandos observados:** instalação de `audit/requirements-audit.txt` em ambiente virtual novo Python 3.12.14; `PYTHONPATH=backend python -m src.retail.demo examples/retail-demo.json examples/generated` gerou DXF/SVG/relatório; `PYTHONPATH=backend python -m pytest backend/tests -q`: **30 passaram, 6 avisos**. Não houve cliente remoto ou GPU.
+- **Limites:** Windows/VS Code não executados neste ambiente; tarefa conferida por inspeção. AutoCAD, build frontend e revisão do consultor pendentes. Aprovação continua limitada às verificações existentes.
+- **Próxima ação:** I1, explicitar regras sintéticas de alteração do inventário e convenção de acessos/conexões antes de ampliar os validadores; registrar propostas em `mudancas.md` se revelarem conflito de intenção. Não há bloqueio de GPU para esse trabalho.
+
+Verificação visual de I0: SVG renderizado com CairoSVG e inspecionado; corrigida altura explícita da imagem para preservar a proporção. CairoSVG/Black foram ferramentas de desenvolvimento locais, não dependências do CLI. `git diff --check` sem erros.

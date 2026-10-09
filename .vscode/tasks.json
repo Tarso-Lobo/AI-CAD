@@ -58,7 +58,8 @@
           "PYTHONPATH": "${workspaceFolder}/backend"
         }
       },
-      "problemMatcher": []
+      "problemMatcher": [],
+      "detail": "I0: gera retail-layout.dxf, retail-layout.svg e validation.json em diretório novo ou vazio, sem servidor remoto."
     }
   ]
 }
