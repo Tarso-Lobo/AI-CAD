@@ -83,3 +83,12 @@ Toda alteração nova nesta linha de trabalho, em qualquer branch, deve atualiza
 - **Alteração:** documentado o protótipo ZeroGPU como preparado, o bloqueio de autenticação 403 e o estado ainda não implantado; estabelecida a regra de registrar mudanças e testes nas especificações independentemente da branch.
 - **Verificações:** inspeção do formulário e do estado visível do Hugging Face; tentativa de autenticação por fluxo seguro; resposta visível 403 CloudFront. A autenticação e a implantação não foram verificadas com sucesso.
 - **Testes de software:** a execução anterior desta branch registrou 23 testes passando, incluindo cliente Gradio simulado e validação local. Esses testes não incluem chamada remota nem uso de GPU. Nenhuma nova suíte foi executada nesta atualização, que altera documentação.
+
+
+### Auditoria do conector Hugging Face (2026-10-09)
+
+- **Acesso confirmado:** o conector autenticou como `@Tarso-Lobo`; a consulta de metadados do modelo `Qwen/Qwen2.5-1.5B-Instruct` funcionou. O contexto de autorização informou os escopos `read-repos` e `jobs`, além dos escopos de identidade.
+- **Limite de escrita:** as ferramentas Hugging Face disponíveis nesta sessão oferecem identidade, busca/leitura de modelos, datasets, Spaces e documentação. Não há ferramenta exposta para criar um Space, enviar/alterar arquivos de Space ou editar configurações/segredos. Os escopos observados também não incluem escrita de repositórios. Portanto, o conector não permite concluir a implantação por conta própria nesta configuração.
+- **Jobs:** a chamada de consulta de Jobs foi tentada, mas o servidor retornou `UNAVAILABLE` (“hf_jobs was not returned by tools/list”). Nenhum Job foi criado. O comando local `hf` também não está instalado neste ambiente; o OAuth do conector não foi copiado para o CLI.
+- **Testes desta verificação:** identidade autenticada confirmada; leitura de metadados públicos do modelo confirmada; consulta de Jobs indisponível; criação/edição de Space não pôde ser testada porque não existe ferramenta de escrita exposta. O erro 403 observado no navegador continua distinto do login do conector.
+- **Conclusão operacional:** o plugin melhorou o acesso de leitura à conta e aos metadados, mas não concede “liberdade” de administração do Space. Para criar/configurar, é necessário um canal de escrita autorizado (por exemplo, habilitar permissões de escrita na integração ou usar uma sessão autenticada/CLI com token de escrita mantido fora do repositório). Não registrar nem compartilhar esse token em arquivos ou mensagens.
